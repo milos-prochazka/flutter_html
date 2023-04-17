@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_html/src/html_elements.dart';
 import 'package:flutter_html/src/utils.dart';
+import 'dart:ui' as ui show PlaceholderAlignment;
+
 
 typedef CustomRenderMatcher = bool Function(RenderContext context);
 
@@ -456,22 +458,43 @@ Map<CustomRenderMatcher, CustomRender> generateDefaultRenders() {
 InlineSpan _getInteractableChildren(RenderContext context,
     InteractableElement tree, InlineSpan childSpan, TextStyle childStyle) {
   if (childSpan is TextSpan) {
-    return TextSpan(
-      text: childSpan.text,
-      children: childSpan.children
-          ?.map((e) => _getInteractableChildren(
-              context, tree, e, childStyle.merge(childSpan.style)))
-          .toList(),
-      style: context.style.generateTextStyle().merge(childSpan.style == null
-          ? childStyle
-          : childStyle.merge(childSpan.style)),
-      semanticsLabel: childSpan.semanticsLabel,
-      recognizer: TapGestureRecognizer()
-        ..onTap = context.parser.internalOnAnchorTap != null
-            ? () => context.parser.internalOnAnchorTap!(
-                tree.href, context, tree.attributes, tree.element)
-            : null,
-    );
+    if (context.parser.internalOnAnchorTap != null)
+    {
+      return InkWidgetSpan
+      (
+        onTap: () => context.parser.internalOnAnchorTap!(
+                tree.href, context, tree.attributes, tree.element),
+        child: RichText
+        (
+          text: TextSpan
+          (
+            text: childSpan.text,
+            children: childSpan.children
+                ?.map((e) => _getInteractableChildren(
+                    context, tree, e, childStyle.merge(childSpan.style)))
+                .toList(),
+            style: context.style.generateTextStyle().merge(childSpan.style == null
+                ? childStyle
+                : childStyle.merge(childSpan.style)),
+            semanticsLabel: childSpan.semanticsLabel,
+          )
+        )
+      );
+    }
+    else 
+    {
+      return TextSpan(
+        text: childSpan.text,
+        children: childSpan.children
+            ?.map((e) => _getInteractableChildren(
+                context, tree, e, childStyle.merge(childSpan.style)))
+            .toList(),
+        style: context.style.generateTextStyle().merge(childSpan.style == null
+            ? childStyle
+            : childStyle.merge(childSpan.style)),
+        semanticsLabel: childSpan.semanticsLabel,
+      );
+    }
   } else {
     return WidgetSpan(
       child: MultipleTapGestureDetector(
@@ -545,4 +568,42 @@ double _aspectRatio(
 extension ClampedEdgeInsets on EdgeInsetsGeometry {
   EdgeInsetsGeometry get nonNegative =>
       clamp(EdgeInsets.zero, const EdgeInsets.all(double.infinity));
+}
+
+class InkWidget extends StatelessWidget 
+{
+  final GestureTapCallback? onTap;
+
+  const InkWidget({Key? key, required this.child, this.onTap}) : super(key: key);
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) 
+  {
+    return InkWell
+    (
+      onTap: () 
+      {
+        onTap?.call();
+      },
+      child: child
+    );
+  }
+}
+
+// ignore: non_constant_identifier_names
+WidgetSpan InkWidgetSpan({required Widget child, GestureTapCallback? onTap,ui.PlaceholderAlignment alignment=ui.PlaceholderAlignment.bottom,TextStyle? style,TextBaseline? baseline }) 
+{
+  return WidgetSpan
+  (
+    alignment: alignment,
+    baseline: baseline,
+    style: style,
+    child: InkWidget
+    (
+      onTap: onTap,
+      child: child,
+    )
+  );
 }
