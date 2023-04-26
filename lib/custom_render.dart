@@ -220,10 +220,11 @@ CustomRender base64ImageRender() =>
           builder: (buildContext) {
             return GestureDetector(
               child: widget,
+              onTapDown:(details) => MultipleTapGestureDetector.ofOnTapDown(buildContext),
+              onTapUp:(details) => MultipleTapGestureDetector.ofOnTapUp(buildContext),
+              onTapCancel: () => MultipleTapGestureDetector.ofOnTapUp(buildContext),
               onTap: () {
-                if (MultipleTapGestureDetector.of(buildContext) != null) {
-                  MultipleTapGestureDetector.of(buildContext)!.onTap?.call();
-                }
+                MultipleTapGestureDetector.ofOnTap(buildContext);
                 context.parser.onImageTap?.call(
                     _src(context.tree.element!.attributes.cast())!
                         .split("base64,")[1]
@@ -260,10 +261,11 @@ CustomRender assetImageRender({
           builder: (buildContext) {
             return GestureDetector(
               child: widget,
+              onTapDown:(details) => MultipleTapGestureDetector.ofOnTapDown(buildContext),
+              onTapUp:(details) => MultipleTapGestureDetector.ofOnTapUp(buildContext),
+              onTapCancel: () => MultipleTapGestureDetector.ofOnTapUp(buildContext),
               onTap: () {
-                if (MultipleTapGestureDetector.of(buildContext) != null) {
-                  MultipleTapGestureDetector.of(buildContext)!.onTap?.call();
-                }
+                MultipleTapGestureDetector.ofOnTap(buildContext);
                 context.parser.onImageTap?.call(
                     assetPath,
                     context,
@@ -369,10 +371,11 @@ CustomRender networkImageRender({
           builder: (buildContext) {
             return GestureDetector(
               child: widget,
+              onTapDown:(details) => MultipleTapGestureDetector.ofOnTapDown(buildContext),
+              onTapUp:(details) => MultipleTapGestureDetector.ofOnTapUp(buildContext),
+              onTapCancel: () => MultipleTapGestureDetector.ofOnTapUp(buildContext),
               onTap: () {
-                if (MultipleTapGestureDetector.of(buildContext) != null) {
-                  MultipleTapGestureDetector.of(buildContext)!.onTap?.call();
-                }
+                MultipleTapGestureDetector.ofOnTap(buildContext);
                 context.parser.onImageTap?.call(
                     src,
                     context,
@@ -497,20 +500,30 @@ InlineSpan _getInteractableChildren(RenderContext context,
     }
   } else {
     return WidgetSpan(
-      child: MultipleTapGestureDetector(
+      child: MultipleTapGestureWidget(key: context.key,
         onTap: context.parser.internalOnAnchorTap != null
             ? () => context.parser.internalOnAnchorTap!(
                 tree.href, context, tree.attributes, tree.element)
             : null,
+        child: (childSpan as WidgetSpan).child,
+        )
+      /*MultipleTapGestureDetector(
+        onTap: context.parser.internalOnAnchorTap != null
+            ? () => context.parser.internalOnAnchorTap!(
+                tree.href, context, tree.attributes, tree.element)
+            : null,
+        onTapDown: () {},
+        onTapUp: () {},
         child: GestureDetector(
           key: context.key,
           onTap: context.parser.internalOnAnchorTap != null
               ? () => context.parser.internalOnAnchorTap!(
                   tree.href, context, tree.attributes, tree.element)
               : null,
-          child: (childSpan as WidgetSpan).child,
+          child: ColorFiltered( colorFilter: ColorFilter.mode(Color.fromARGB(80,80,80,80), BlendMode.srcOver), child: (childSpan as WidgetSpan).child),
+          //child: Stack(children: <Widget>[(childSpan as WidgetSpan).child,Container(color:Colors.black45)])
         ),
-      ),
+      ),*/
     );
   }
 }
